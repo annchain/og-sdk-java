@@ -79,7 +79,6 @@ public class Secp256k1_Signer {
     }
 
 //    public static void main(String[] args) {
-//        // generate tx data
 //        byte[] from = Hex.decode("8c444f64c59ba1bdca8df453062a51068ecb84c1");
 //        byte[] to = Hex.decode("96f4ac2f3215b80ea3a6466ebc1f268f6f1d5406");
 //        BigInteger value = new BigInteger("123456");
