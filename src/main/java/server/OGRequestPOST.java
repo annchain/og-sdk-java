@@ -8,18 +8,17 @@ import java.util.Map;
 
 public class OGRequestPOST {
 
-    private Map<String, Object> variables;
+    private JSONObject variables;
 
     public OGRequestPOST() {
-        this.variables = new HashMap();
+        this.variables = new JSONObject();
     }
 
-    public void SetVariable(String key, String value) {
+    public void SetVariable(String key, Object value) {
         this.variables.put(key, value);
     }
 
     public String ToJSONString() {
-        JSONObject json = new JSONObject(this.variables);
-        return json.toJSONString();
+        return this.variables.toJSONString();
     }
 }

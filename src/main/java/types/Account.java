@@ -1,3 +1,5 @@
+package types;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.bouncycastle.util.encoders.Hex;

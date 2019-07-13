@@ -9,10 +9,10 @@ import java.util.Map;
 public class OGRequestGET {
 
     private String method;
-    private Map<String, Object> variables;
+    private JSONObject variables;
 
     public OGRequestGET() {
-        this.variables = new HashMap();
+        this.variables = new JSONObject();
     }
 
     public void SetVariable(String key, String value) {
