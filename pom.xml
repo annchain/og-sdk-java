@@ -25,6 +25,7 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.43</version>
         </dependency>
+
     </dependencies>
 
 

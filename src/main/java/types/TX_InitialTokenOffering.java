@@ -2,6 +2,7 @@ package types;
 
 import org.bouncycastle.util.encoders.Hex;
 import org.web3j.abi.datatypes.generated.Uint64;
+import org.web3j.abi.datatypes.generated.Uint8;
 import server.OGRequestPOST;
 import utils.Secp256k1_Signer;
 
@@ -19,7 +20,7 @@ public class TX_InitialTokenOffering {
     private String tokenName;
 
     private final String cryptoType = "secp256k1";
-
+    private final Uint8 action = new Uint8(0);
     public final String rpcMethod = "token/initial_offering";
 
     public TX_InitialTokenOffering(Account fromAccount, Uint64 nonce, BigInteger value, Boolean additionalIssue, String tokenName) {
@@ -35,7 +36,8 @@ public class TX_InitialTokenOffering {
 
         byte[] fromBytes = Hex.decode(this.fromAddress);
 
-        int msgLength = 8 + fromBytes.length + this.value.toByteArray().length + 1;
+        // 8 bytes nonce + 1 byte action + from length + value length + additionalIssue + token length
+        int msgLength = 8 + 1 + fromBytes.length + this.value.toByteArray().length + 1 + this.tokenName.getBytes().length;
         byte[] msg = new byte[msgLength];
         ByteBuffer msgBuffer = ByteBuffer.wrap(msg);
 
@@ -43,6 +45,7 @@ public class TX_InitialTokenOffering {
         String nonceStr = String.format("%16s", temp).replace(' ', '0');
 
         msgBuffer.put(Hex.decode(nonceStr));
+        msgBuffer.put(this.action.getValue().toByteArray());
         msgBuffer.put(fromBytes);
         msgBuffer.put(this.value.toByteArray());
         if (this.additionalIssue) {
@@ -51,6 +54,8 @@ public class TX_InitialTokenOffering {
             msgBuffer.put((byte)0);
         }
         msgBuffer.put(this.tokenName.getBytes());
+
+        System.out.println("sig targets: " + Hex.toHexString(msg));
 
         return msg;
     }
@@ -64,14 +69,18 @@ public class TX_InitialTokenOffering {
 
         OGRequestPOST req = new OGRequestPOST();
 
-        req.SetVariable("nonce", this.nonce.toString());
+        req.SetVariable("nonce", this.nonce.getValue().intValue());
         req.SetVariable("from", this.fromAddress);
 
         req.SetVariable("value", this.value.toString());
 
+        req.SetVariable("action", this.action.getValue().intValue());
+
         req.SetVariable("enable_spo", this.additionalIssue);
         req.SetVariable("crypto_type", this.cryptoType);
         req.SetVariable("signature", this.sign());
+
+        System.out.println("sig: " + this.sign());
         req.SetVariable("pubkey", Hex.toHexString(this.account.GetPublicKey()));
 
         req.SetVariable("token_name", this.tokenName);

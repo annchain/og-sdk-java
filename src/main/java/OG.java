@@ -1,5 +1,6 @@
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.bouncycastle.util.encoders.Hex;
 import org.web3j.abi.datatypes.generated.Int32;
 import org.web3j.abi.datatypes.generated.Uint64;
 import server.OGRequestGET;
@@ -196,6 +197,20 @@ public class OG {
         return nonceInteger;
     }
 
+    public static void main(String args[]) {
+        String url = "http://localhost:8000";
+        OG og = new OG(url);
 
+        Account account = new Account();
+        String hash = og.InitialTokenOffering(account, new BigInteger("10000"), true, "uni");
+
+        System.out.println("account private key: " + Hex.toHexString(account.GetPrivateKey()));
+        System.out.println("pub key: " + Hex.toHexString(account.GetPublicKey()));
+        System.out.println(hash);
+
+        
+
+//        Account account = new Account("00daa94713dc3883d240d093f605431f2756b9d2be0616e889c56c20f5822b28b3");
+    }
 
 }

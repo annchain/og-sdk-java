@@ -6,6 +6,8 @@ import org.bouncycastle.util.encoders.Hex;
 import org.web3j.crypto.*;
 import server.OGRequestPOST;
 import server.OGServer;
+import utils.Secp256k1_KeyGenerator;
+import utils.Secp256k1_Signer;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -20,7 +22,7 @@ public class Account {
     public Account() {
         ECKeyPair keyPair = this.GenerateECKeyPair();
         this.privateKey = keyPair.getPrivateKey();
-        this.publicKey = keyPair.getPublicKey();
+        this.publicKey = Secp256k1_KeyGenerator.GeneratePublicKey(keyPair);
         try {
             this.address = this.ECKeyPairToAddress(keyPair);
         } catch (CipherException e) {
@@ -33,7 +35,7 @@ public class Account {
 
         ECKeyPair keyPair = ECKeyPair.create(privBytes);
         this.privateKey = keyPair.getPrivateKey();
-        this.publicKey = keyPair.getPublicKey();
+        this.publicKey = Secp256k1_KeyGenerator.GeneratePublicKey(keyPair);
         try {
             this.address = this.ECKeyPairToAddress(keyPair);
         } catch (CipherException e) {
@@ -44,7 +46,7 @@ public class Account {
     public Account(byte[] priv) {
         ECKeyPair keyPair = ECKeyPair.create(priv);
         this.privateKey = keyPair.getPrivateKey();
-        this.publicKey = keyPair.getPublicKey();
+        this.publicKey = Secp256k1_KeyGenerator.GeneratePublicKey(keyPair);
         try {
             this.address = this.ECKeyPairToAddress(keyPair);
         } catch (CipherException e) {
@@ -55,7 +57,7 @@ public class Account {
     public Account(BigInteger priv) {
         ECKeyPair keyPair = ECKeyPair.create(priv);
         this.privateKey = keyPair.getPrivateKey();
-        this.publicKey = keyPair.getPublicKey();
+        this.publicKey = Secp256k1_KeyGenerator.GeneratePublicKey(keyPair);
         try {
             this.address = this.ECKeyPairToAddress(keyPair);
         } catch (CipherException e) {

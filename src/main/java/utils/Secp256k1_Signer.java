@@ -5,6 +5,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Sign;
+import org.web3j.crypto.TransactionEncoder;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -43,20 +44,21 @@ public class Secp256k1_Signer {
 
     public Sign.SignatureData Sign(byte[] msg) {
         msg = Hash.sha256(msg);
-        return Sign.signMessage(msg, this.keyPair);
+
+        return Sign.signMessage(msg, this.keyPair, false);
     }
 
     public byte[] SignAsBytes(byte[] msg) {
         msg = Hash.sha256(msg);
 
-        Sign.SignatureData sig = Sign.signMessage(msg, this.keyPair);
+        Sign.SignatureData sig = Sign.signMessage(msg, this.keyPair, false);
         return this.SignatureToBytes(sig);
     }
 
     public String SignAsHex(byte[] msg) {
         msg = Hash.sha256(msg);
 
-        Sign.SignatureData sig = Sign.signMessage(msg, this.keyPair);
+        Sign.SignatureData sig = Sign.signMessage(msg, this.keyPair, false);
         return this.SignatureToHex(sig);
     }
 
@@ -79,51 +81,14 @@ public class Secp256k1_Signer {
         return Hex.toHexString(b);
     }
 
-//    public static void main(String[] args) {
-//        byte[] from = Hex.decode("8c444f64c59ba1bdca8df453062a51068ecb84c1");
-//        byte[] to = Hex.decode("96f4ac2f3215b80ea3a6466ebc1f268f6f1d5406");
-//        BigInteger value = new BigInteger("123456");
-//        byte[] data = Hex.decode("7613abcdef");
-//        Uint64 nonce = new Uint64(1);
-//
-//        String temp = Hex.toHexString(nonce.getValue().toByteArray());
-//        String nonceStr = String.format("%16s", temp).replace(' ', '0');
-//
-//        // create sign message
-//        int msgLength = 8 + from.length + to.length + value.toByteArray().length + data.length;
-//        byte[] msg = new byte[msgLength];
-//        ByteBuffer msgBuffer = ByteBuffer.wrap(msg);
-//        msgBuffer.put(Hex.decode(nonceStr));
-//        msgBuffer.put(from);
-//        msgBuffer.put(to);
-//        msgBuffer.put(value.toByteArray());
-//        msgBuffer.put(data);
-//
-//        System.out.println(Hex.toHexString(msg));
-//
-//        // generate key pair
-//        byte[] privBytes = Hex.decode("7b2102f7662a35682fedb1a35979de06397eef7c177a18f1877a17a4ade8ddfa");
-//        BigInteger priv = new BigInteger(privBytes);
-//        BigInteger pub = Sign.publicKeyFromPrivate(priv);
-//        ECKeyPair eckp = new ECKeyPair(priv, pub);
-//
-//        // secp256k1 sign
-//        msg = Hash.sha256(msg);
-//        Sign.SignatureData sigData = Sign.signMessage(msg, eckp, false);
-//
-//        // convert signature to byte[]
-//        byte[] r = sigData.getR();
-//        byte[] s = sigData.getS();
-//        byte v = sigData.getV();
-//
-//        byte[] sig = new byte[r.length + s.length + 1];
-//        ByteBuffer sigBuffer = ByteBuffer.wrap(sig);
-//        sigBuffer.put(r);
-//        sigBuffer.put(s);
-//        sigBuffer.put(v);
-//
-//        System.out.println(Hex.toHexString(sig));
-//
-//    }
+    public static void main(String[] args) {
+        String msg = "000000000000000100f481a42b547852dce4a3cf51e981ffe8417ee088271001756e69";
+        String priv = "4d5b41bfcb6a7d741df26067b437a31f39b1da41117b922e791277b48f8a57a9";
+
+        Secp256k1_Signer signer = new Secp256k1_Signer(priv);
+        Sign.SignatureData sig = signer.Sign(Hex.decode(msg));
+
+        System.out.println(signer.SignatureToHex(sig));
+    }
 
 }

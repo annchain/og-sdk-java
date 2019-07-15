@@ -62,7 +62,7 @@ public class TX {
     public OGRequestPOST commit() {
         OGRequestPOST req = new OGRequestPOST();
 
-        req.SetVariable("nonce", this.nonce.toString());
+        req.SetVariable("nonce", this.nonce.getValue().intValue());
         req.SetVariable("from", this.fromAddress);
         req.SetVariable("to", this.toAddress);
         req.SetVariable("value", this.value.toString());
