@@ -19,12 +19,12 @@ public class TX {
     private String toAddress;
     private BigInteger value;
     private byte[] data;
-    private Int32 tokenID;
+    private Integer tokenID;
 
     private final String cryptoType = "secp256k1";
     public final String rpcMethod = "new_transaction";
 
-    public TX(Account fromAccount, String toAddress, Uint64 nonce, BigInteger value, byte[] data, Int32 tokenID) {
+    public TX(Account fromAccount, String toAddress, Uint64 nonce, BigInteger value, byte[] data, Integer tokenID) {
         this.account = fromAccount;
         this.nonce = nonce;
         this.fromAddress = fromAccount.GetAddress();
@@ -38,7 +38,7 @@ public class TX {
         byte[] fromBytes = Hex.decode(this.fromAddress);
         byte[] toBytes = Hex.decode(this.toAddress);
 
-        int msgLength = 8 + fromBytes.length + toBytes.length + this.value.toByteArray().length + this.data.length;
+        int msgLength = 8 + fromBytes.length + toBytes.length + this.value.toByteArray().length + this.data.length + 4;
         byte[] msg = new byte[msgLength];
         ByteBuffer msgBuffer = ByteBuffer.wrap(msg);
 
@@ -51,6 +51,12 @@ public class TX {
         msgBuffer.put(this.value.toByteArray());
         msgBuffer.put(data);
 
+        String tempTokenID = Integer.toHexString(this.tokenID);
+        String tokenID = String.format("%8s", tempTokenID).replace(' ', '0');
+        msgBuffer.put(Hex.decode(tokenID));
+
+        System.out.println("sig targets: " + Hex.toHexString(msg));
+
         return msg;
     }
 
@@ -62,7 +68,7 @@ public class TX {
     public OGRequestPOST commit() {
         OGRequestPOST req = new OGRequestPOST();
 
-        req.SetVariable("nonce", this.nonce.getValue().intValue());
+        req.SetVariable("nonce", this.nonce.getValue().toString());
         req.SetVariable("from", this.fromAddress);
         req.SetVariable("to", this.toAddress);
         req.SetVariable("value", this.value.toString());
@@ -70,7 +76,7 @@ public class TX {
         req.SetVariable("crypto_type", this.cryptoType);
         req.SetVariable("signature", this.sign());
         req.SetVariable("pubkey", Hex.toHexString(this.account.GetPublicKey()));
-        req.SetVariable("token_id", this.tokenID.getValue().toString());
+        req.SetVariable("token_id", this.tokenID);
 
         return req;
     }

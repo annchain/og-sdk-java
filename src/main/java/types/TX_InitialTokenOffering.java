@@ -55,8 +55,6 @@ public class TX_InitialTokenOffering {
         }
         msgBuffer.put(this.tokenName.getBytes());
 
-        System.out.println("sig targets: " + Hex.toHexString(msg));
-
         return msg;
     }
 

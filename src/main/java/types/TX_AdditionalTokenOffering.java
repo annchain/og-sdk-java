@@ -36,7 +36,7 @@ public class TX_AdditionalTokenOffering {
         byte[] fromBytes = Hex.decode(this.fromAddress);
 
         // 8 bytes nonce + 1 byte action + from length + value length + additionalIssue + tokenID
-        int msgLength = 8 + 1 + fromBytes.length + this.value.toByteArray().length + 1 + 8;
+        int msgLength = 8 + 1 + fromBytes.length + this.value.toByteArray().length + 1 + 4;
         byte[] msg = new byte[msgLength];
         ByteBuffer msgBuffer = ByteBuffer.wrap(msg);
 
@@ -56,6 +56,8 @@ public class TX_AdditionalTokenOffering {
         String tempTokenID = Integer.toHexString(this.tokenID);
         String tokenID = String.format("%8s", tempTokenID).replace(' ', '0');
         msgBuffer.put(Hex.decode(tokenID));
+
+        System.out.println("sig targets: " + Hex.toHexString(msg));
 
         return msg;
     }
@@ -84,5 +86,15 @@ public class TX_AdditionalTokenOffering {
         req.SetVariable("token_id", this.tokenID);
 
         return req;
+    }
+
+    public static void main(String args[]) {
+        Integer nonce = 1;
+
+        String tempTokenID = Integer.toHexString(nonce);
+        String tokenID = String.format("%8s", tempTokenID).replace(' ', '0');
+
+        System.out.println(tokenID);
+
     }
 }

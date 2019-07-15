@@ -22,11 +22,11 @@ public class TX_DestroyToken {
     private final Uint8 action = new Uint8(1);
     public final String rpcMethod = "token/destroy";
 
-    public TX_DestroyToken(Account fromAccount, Uint64 nonce, BigInteger value, Integer tokenID) {
+    public TX_DestroyToken(Account fromAccount, Uint64 nonce, Integer tokenID) {
         this.account = fromAccount;
         this.nonce = nonce;
         this.fromAddress = fromAccount.GetAddress();
-        this.value = value;
+        this.value = new BigInteger("0");
         this.tokenID = tokenID;
     }
 
@@ -35,7 +35,7 @@ public class TX_DestroyToken {
         byte[] fromBytes = Hex.decode(this.fromAddress);
 
         // 8 bytes nonce + 1 byte action + from length + value length + additionalIssue + tokenID length
-        int msgLength = 8 + 1 + fromBytes.length + this.value.toByteArray().length + 1 + 8;
+        int msgLength = 8 + 1 + fromBytes.length + this.value.toByteArray().length + 1 + 4;
         byte[] msg = new byte[msgLength];
         ByteBuffer msgBuffer = ByteBuffer.wrap(msg);
 
@@ -55,6 +55,8 @@ public class TX_DestroyToken {
         String tempTokenID = Integer.toHexString(this.tokenID);
         String tokenID = String.format("%8s", tempTokenID).replace(' ', '0');
         msgBuffer.put(Hex.decode(tokenID));
+
+        System.out.println("sig targets: " + Hex.toHexString(msg));
 
         return msg;
     }

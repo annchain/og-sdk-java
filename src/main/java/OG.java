@@ -11,6 +11,7 @@ import types.*;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.concurrent.TimeUnit;
 
 public class OG {
 
@@ -22,11 +23,11 @@ public class OG {
         this.server = new OGServer(url);
     }
 
-    public String TransferToken(Account account, String to, Integer tokenID, BigInteger value, byte[] data) {
+    public String TransferToken(Account account, String to, Integer tokenID, BigInteger value) {
         Long nonceLong = this.GetNonce(account.GetAddress());
         Uint64 nonce = new Uint64(nonceLong+1);
 
-        TX tx = new TX(account, to, nonce, value, data, new Int32(tokenID));
+        TX tx = new TX(account, to, nonce, value, Hex.decode(""), tokenID);
         OGRequestPOST req = tx.commit();
 
         String resp;
@@ -92,12 +93,12 @@ public class OG {
         return hash;
     }
 
-    public String DestroyToken(Account account, BigInteger value, Integer tokenID) {
+    public String DestroyToken(Account account, Integer tokenID) {
 
         Long nonceLong = this.GetNonce(account.GetAddress());
         Uint64 nonce = new Uint64(nonceLong+1);
 
-        TX_DestroyToken tx = new TX_DestroyToken(account, nonce, value, tokenID);
+        TX_DestroyToken tx = new TX_DestroyToken(account, nonce, tokenID);
         OGRequestPOST req = tx.commit();
 
         String resp;
@@ -165,7 +166,7 @@ public class OG {
         try {
             resp = this.server.Get("query_balance", req);
         } catch (IOException e) {
-            System.out.println("post new transaction error: " + e.toString());
+            System.out.println("query balance error: " + e.toString());
             return new BigInteger("0");
         }
         JSONObject json = JSON.parseObject(resp);
@@ -201,16 +202,51 @@ public class OG {
         String url = "http://localhost:8000";
         OG og = new OG(url);
 
-        Account account = new Account();
+        // publish a token.
+        Account account = new Account("2fc8cb30f79ab7d56492a911d172e47847032ac21d73bfdf0ecad4bec65fcd9e");
         String hash = og.InitialTokenOffering(account, new BigInteger("10000"), true, "uni");
 
         System.out.println("account private key: " + Hex.toHexString(account.GetPrivateKey()));
         System.out.println("pub key: " + Hex.toHexString(account.GetPublicKey()));
         System.out.println(hash);
 
-        
+//        // test query receipt
+//        try {
+//            TimeUnit.SECONDS.sleep(5);
+//        } catch (Exception e) {
+//            // do nothing.
+//        }
+//        String receiptJsonStr = og.QueryReceipt(hash);
+//        System.out.println("receipt: " + receiptJsonStr);
+//
+//        JSONObject receiptJson = JSONObject.parseObject(receiptJsonStr);
 
-//        Account account = new Account("00daa94713dc3883d240d093f605431f2756b9d2be0616e889c56c20f5822b28b3");
+//        // test query balance
+//        BigInteger balance = og.QueryBalance(account.GetAddress(), 1);
+//        System.out.println("balance is: " + balance.toString());
+
+//        // test query token
+//        String tokenInfo = og.QueryToken(1);
+//        System.out.println(tokenInfo);
+
+        // test offer more token
+
+//        String offerMoreTokenStr = og.OfferMoreToken(account, new BigInteger("10000"), 1);
+//        System.out.println("offer more token tx hash: " + offerMoreTokenStr);
+
+        // test token destroy
+
+//        String destroyToken = og.DestroyToken(account, 1);
+//        System.out.println("offer destroy token tx hash: " + destroyToken);
+
+        // test token transfer
+
+        Account toAccount = new Account();
+
+        String transferToken = og.TransferToken(account, toAccount.GetAddress(), 2, new BigInteger("100"));
+        System.out.println("to address: " + toAccount.GetAddress());
+        System.out.println("transfer token tx hash: " + transferToken);
+
     }
 
 }
