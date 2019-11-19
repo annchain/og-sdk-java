@@ -1,2 +1,2 @@
-# og-sdk-jva
+# og-sdk-java
 Java SDK for OG
