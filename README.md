@@ -1,2 +1,2 @@
-# og-sdk-go
-Go SDK for OG DLT
+# og-sdk-jva
+Java SDK for OG
