@@ -20,10 +20,8 @@ public class OGServer {
         Request request = new Request.Builder()
                 .url(this.url + "/" + rpcMethod + "?" + req.ToString())
                 .build();
-
-        try (Response response = client.newCall(request).execute()) {
-            return response.body().string();
-        }
+        Response response = client.newCall(request).execute();
+        return response.body().string();
     }
 
     public String Post(String rpcMethod, OGRequestPOST req) throws IOException {
@@ -32,8 +30,7 @@ public class OGServer {
                 .url(this.url + "/" + rpcMethod)
                 .post(body)
                 .build();
-        try (Response response = client.newCall(request).execute()) {
-            return response.body().string();
-        }
+        Response response = client.newCall(request).execute();
+        return response.body().string();
     }
 }

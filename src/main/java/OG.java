@@ -1,17 +1,17 @@
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import org.bouncycastle.util.encoders.Hex;
-import org.web3j.abi.datatypes.generated.Int32;
+import model.QueryBalanceResp;
+import model.QueryNonceResp;
+import model.QueryReceiptResp;
+import model.QueryTokenResp;
 import org.web3j.abi.datatypes.generated.Uint64;
 import server.OGRequestGET;
 import server.OGRequestPOST;
 import server.OGServer;
-import sun.jvm.hotspot.debugger.SymbolLookup;
 import types.*;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.concurrent.TimeUnit;
 
 public class OG {
 
@@ -23,20 +23,12 @@ public class OG {
         this.server = new OGServer(url);
     }
 
-    public String TransferToken(Account account, String to, Integer tokenID, BigInteger value) {
-        Long nonceLong = this.GetNonce(account.GetAddress());
-        Uint64 nonce = new Uint64(nonceLong+1);
-
-        TX tx = new TX(account, to, nonce, value, Hex.decode(""), tokenID);
+    public String TransferToken(Account account, String to, Integer tokenID, BigInteger value) throws IOException {
+        QueryNonceResp nonceResp = this.QueryNonce(account.GetAddress());
+        Long nonce = nonceResp.getNonce();
+        TX tx = new TX(account, to, nonce, value, "", tokenID);
         OGRequestPOST req = tx.commit();
-
-        String resp;
-        try {
-            resp = this.server.Post("new_transaction", req);
-        } catch (IOException e) {
-            System.out.println("post new transaction error: " + e.toString());
-            return "post new transaction error: " + e.toString();
-        }
+        String resp = this.server.Post("new_transaction", req);
         JSONObject json = JSON.parseObject(resp);
         if (!json.getString("message").equals("")) {
             System.out.println("transfer token error: " + json.getString("message"));
@@ -46,9 +38,10 @@ public class OG {
         return hash;
     }
 
-    public String InitialTokenOffering(Account account, BigInteger value, Boolean additionalIssue, String tokenName) {
-        Long nonceLong = this.GetNonce(account.GetAddress());
-        Uint64 nonce = new Uint64(nonceLong+1);
+    public String InitialTokenOffering(Account account, BigInteger value, Boolean additionalIssue, String tokenName) throws IOException {
+
+        QueryNonceResp nonceResp = this.QueryNonce(account.GetAddress());
+        Long nonce = nonceResp.getNonce();
 
         TX_InitialTokenOffering tx = new TX_InitialTokenOffering(account, nonce, value, additionalIssue, tokenName);
         OGRequestPOST req = tx.commit();
@@ -69,10 +62,10 @@ public class OG {
         return hash;
     }
 
-    public String OfferMoreToken(Account account, BigInteger value, Integer tokenID) {
+    public String OfferMoreToken(Account account, BigInteger value, Integer tokenID) throws IOException {
 
-        Long nonceLong = this.GetNonce(account.GetAddress());
-        Uint64 nonce = new Uint64(nonceLong+1);
+        QueryNonceResp nonceResp = this.QueryNonce(account.GetAddress());
+        Long nonce = nonceResp.getNonce();
 
         TX_AdditionalTokenOffering tx = new TX_AdditionalTokenOffering(account, nonce, value, tokenID);
         OGRequestPOST req = tx.commit();
@@ -93,10 +86,10 @@ public class OG {
         return hash;
     }
 
-    public String DestroyToken(Account account, Integer tokenID) {
+    public String DestroyToken(Account account, Integer tokenID) throws IOException {
 
-        Long nonceLong = this.GetNonce(account.GetAddress());
-        Uint64 nonce = new Uint64(nonceLong+1);
+        QueryNonceResp nonceResp = this.QueryNonce(account.GetAddress());
+        Long nonce = nonceResp.getNonce();
 
         TX_DestroyToken tx = new TX_DestroyToken(account, nonce, tokenID);
         OGRequestPOST req = tx.commit();
@@ -117,98 +110,51 @@ public class OG {
         return hash;
     }
 
-    public String QueryToken(Integer tokenID) {
+    public QueryTokenResp QueryToken(Integer tokenID) throws IOException {
         OGRequestGET req = new OGRequestGET();
         req.SetVariable("id", tokenID.toString());
 
-        String resp;
-        try {
-            resp = this.server.Get("token", req);
-        } catch (IOException e) {
-            System.out.println("query token error: " + e.toString());
-            return null;
-        }
-        JSONObject json = JSON.parseObject(resp);
-        if (!json.getString("message").equals("")) {
-            System.out.println("query token error: " + json.getString("message"));
-            return null;
-        }
-        JSONObject jsonobj = json.getJSONObject("data");
-        return jsonobj.toJSONString();
+        String resp = this.server.Get("token", req);
+        return JSON.parseObject(resp, QueryTokenResp.class);
     }
 
-    public String QueryReceipt(String hash) {
+    public QueryReceiptResp QueryReceipt(String hash) throws IOException {
         OGRequestGET req = new OGRequestGET();
         req.SetVariable("hash", hash);
 
-        String resp;
-        try {
-            resp = this.server.Get("query_receipt", req);
-        } catch (IOException e) {
-            System.out.println("query receipt error: " + e.toString());
-            return null;
-        }
-        JSONObject json = JSON.parseObject(resp);
-        if (!json.getString("message").equals("")) {
-            System.out.println("query receipt error: " + json.getString("message"));
-            return null;
-        }
-        JSONObject jsonobj = json.getJSONObject("data");
-        return jsonobj.toJSONString();
+        String resp = this.server.Get("query_receipt", req);
+        return JSON.parseObject(resp, QueryReceiptResp.class);
     }
 
-    public BigInteger QueryBalance(String address, Integer tokenID) {
+    public QueryBalanceResp QueryBalance(String address, Integer tokenID) throws IOException {
         OGRequestGET req = new OGRequestGET();
         req.SetVariable("address", address);
         req.SetVariable("token_id", tokenID.toString());
 
-        String resp;
-        try {
-            resp = this.server.Get("query_balance", req);
-        } catch (IOException e) {
-            System.out.println("query balance error: " + e.toString());
-            return new BigInteger("0");
-        }
-        JSONObject json = JSON.parseObject(resp);
-        if (!json.getString("message").equals("")) {
-            System.out.println("query balance error: " + json.getString("message"));
-            return null;
-        }
-        JSONObject jsonobj = json.getJSONObject("data");
-        Long balanceLong = jsonobj.getLong("balance");
-        return new BigInteger(balanceLong.toString());
+        String resp = this.server.Get("query_balance", req);
+        return JSON.parseObject(resp, QueryBalanceResp.class);
     }
 
-    public Long GetNonce(String address) {
+    public QueryNonceResp QueryNonce(String address) throws IOException {
         OGRequestGET req = new OGRequestGET();
         req.SetVariable("address", address);
-        String resp = "";
-        try {
-            resp = server.Get("query_nonce", req);
-        } catch (IOException e) {
-            System.out.println("query nonce error: " + e.toString());
-        }
-        JSONObject json = JSON.parseObject(resp);
-        if (!json.getString("message").equals("")) {
-            System.out.println("query nonce error: " + json.getString("message"));
-            return null;
-        }
-
-        Long nonceInteger = json.getLong("data");
-        return nonceInteger;
+        String resp = server.Get("query_nonce", req);
+        return JSON.parseObject(resp, QueryNonceResp.class);
     }
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
         String url = "http://localhost:8000";
         OG og = new OG(url);
 
         // publish a token.
-        Account account = new Account("2fc8cb30f79ab7d56492a911d172e47847032ac21d73bfdf0ecad4bec65fcd9e");
-        String hash = og.InitialTokenOffering(account, new BigInteger("10000"), true, "uni");
+        Account account = new Account("0000000000000000000000000000000000000000000000000000000000000001");
+        System.out.println(account.GetAddress());
 
-        System.out.println("account private key: " + Hex.toHexString(account.GetPrivateKey()));
-        System.out.println("pub key: " + Hex.toHexString(account.GetPublicKey()));
-        System.out.println(hash);
+//        String hash = og.InitialTokenOffering(account, new BigInteger("10000"), true, "uni");
+//
+//        System.out.println("account private key: " + Hex.toHexString(account.GetPrivateKey()));
+//        System.out.println("pub key: " + Hex.toHexString(account.GetPublicKey()));
+//        System.out.println(hash);
 
 //        // test query receipt
 //        try {
@@ -221,11 +167,14 @@ public class OG {
 //
 //        JSONObject receiptJson = JSONObject.parseObject(receiptJsonStr);
 
-//        // test query balance
-//        BigInteger balance = og.QueryBalance(account.GetAddress(), 1);
+        // test query balance
+        QueryBalanceResp balance = og.QueryBalance("c6b6e9949e1e4a4c4df8b80a9a07c95008b563ea", 0);
+        System.out.println("balance is: " + balance.getData().getBalance());
+//
+//        balance = og.QueryBalance("0xcb88e47e1426149c4354474339b2e2ee13143ca3", 0);
 //        System.out.println("balance is: " + balance.toString());
 
-//        // test query token
+        // test query token
 //        String tokenInfo = og.QueryToken(1);
 //        System.out.println(tokenInfo);
 
@@ -242,10 +191,9 @@ public class OG {
         // test token transfer
 
         Account toAccount = new Account();
-
-        String transferToken = og.TransferToken(account, toAccount.GetAddress(), 2, new BigInteger("100"));
-        System.out.println("to address: " + toAccount.GetAddress());
-        System.out.println("transfer token tx hash: " + transferToken);
+        String transferToken = og.TransferToken(account, toAccount.GetAddress(), 0, new BigInteger("100"));
+//
+//        System.out.println("transfer token tx hash: " + transferToken);
 
     }
 

@@ -82,8 +82,8 @@ public class Secp256k1_Signer {
     }
 
     public static void main(String[] args) {
-        String msg = "000000000000000100f481a42b547852dce4a3cf51e981ffe8417ee088271001756e69";
-        String priv = "4d5b41bfcb6a7d741df26067b437a31f39b1da41117b922e791277b48f8a57a9";
+        String msg = "cf51e981ffe8417ee088271001756e69";
+        String priv = "39b1da41117b922e791277b48f8a57a94d5b41bfcb6a7d741df26067b437a31f";
 
         Secp256k1_Signer signer = new Secp256k1_Signer(priv);
         Sign.SignatureData sig = signer.Sign(Hex.decode(msg));

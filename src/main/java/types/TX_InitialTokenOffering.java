@@ -23,7 +23,7 @@ public class TX_InitialTokenOffering {
     private final Uint8 action = new Uint8(0);
     public final String rpcMethod = "token/initial_offering";
 
-    public TX_InitialTokenOffering(Account fromAccount, Uint64 nonce, BigInteger value, Boolean additionalIssue, String tokenName) {
+    public TX_InitialTokenOffering(Account fromAccount, Long nonce, BigInteger value, Boolean additionalIssue, String tokenName) {
         this.account = fromAccount;
         this.nonce = nonce;
         this.fromAddress = fromAccount.GetAddress();

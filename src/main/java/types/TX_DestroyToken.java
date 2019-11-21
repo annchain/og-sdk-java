@@ -22,7 +22,7 @@ public class TX_DestroyToken {
     private final Uint8 action = new Uint8(1);
     public final String rpcMethod = "token/destroy";
 
-    public TX_DestroyToken(Account fromAccount, Uint64 nonce, Integer tokenID) {
+    public TX_DestroyToken(Account fromAccount, Long nonce, Integer tokenID) {
         this.account = fromAccount;
         this.nonce = nonce;
         this.fromAddress = fromAccount.GetAddress();
