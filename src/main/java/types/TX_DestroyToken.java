@@ -4,22 +4,15 @@ import org.bouncycastle.util.encoders.Hex;
 import org.web3j.abi.datatypes.generated.Uint64;
 import org.web3j.abi.datatypes.generated.Uint8;
 import server.OGRequestPOST;
+import utils.Bytes;
 import utils.Secp256k1_Signer;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
-public class TX_DestroyToken {
-    private Account account;
-
-    private Uint64 nonce;
-    private String fromAddress;
-    private BigInteger value;
-    private final Boolean additionalIssue = false;
-    private Integer tokenID;
-
-    private final String cryptoType = "secp256k1";
-    private final Uint8 action = new Uint8(1);
+public class TX_DestroyToken extends TX_Action {
+    private final Short action = this.actionDestroy;
+    private final Boolean additionalIssue = this.additionalIssueOff;
     public final String rpcMethod = "token/destroy";
 
     public TX_DestroyToken(Account fromAccount, Long nonce, Integer tokenID) {
@@ -31,30 +24,24 @@ public class TX_DestroyToken {
     }
 
     public byte[] signatureTargets() {
-
+        byte[] nonceBytes = Bytes.LongToBytes(this.nonce);
+        byte[] actionBytes = Bytes.ShortToBytes(this.action);
         byte[] fromBytes = Hex.decode(this.fromAddress);
+        byte[] valueBytes = this.value.toByteArray();
+        byte[] additionIssueBytes = Bytes.ShortToBytes(this.additionalIssuaToShort(this.additionalIssue));
+        byte[] tokenIDBytes = Bytes.IntToBytes(this.tokenID);
 
         // 8 bytes nonce + 1 byte action + from length + value length + additionalIssue + tokenID length
-        int msgLength = 8 + 1 + fromBytes.length + this.value.toByteArray().length + 1 + 4;
+        int msgLength = nonceBytes.length + actionBytes.length + fromBytes.length + valueBytes.length + additionIssueBytes.length + tokenIDBytes.length;
         byte[] msg = new byte[msgLength];
         ByteBuffer msgBuffer = ByteBuffer.wrap(msg);
 
-        String temp = Hex.toHexString(this.nonce.getValue().toByteArray());
-        String nonceStr = String.format("%16s", temp).replace(' ', '0');
-
-        msgBuffer.put(Hex.decode(nonceStr));
-        msgBuffer.put(this.action.getValue().toByteArray());
+        msgBuffer.put(nonceBytes);
+        msgBuffer.put(actionBytes);
         msgBuffer.put(fromBytes);
-        msgBuffer.put(this.value.toByteArray());
-        if (this.additionalIssue) {
-            msgBuffer.put((byte)1);
-        } else {
-            msgBuffer.put((byte)0);
-        }
-
-        String tempTokenID = Integer.toHexString(this.tokenID);
-        String tokenID = String.format("%8s", tempTokenID).replace(' ', '0');
-        msgBuffer.put(Hex.decode(tokenID));
+        msgBuffer.put(valueBytes);
+        msgBuffer.put(additionIssueBytes);
+        msgBuffer.put(tokenIDBytes);
 
         System.out.println("sig targets: " + Hex.toHexString(msg));
 
@@ -70,18 +57,14 @@ public class TX_DestroyToken {
 
         OGRequestPOST req = new OGRequestPOST();
 
-        req.SetVariable("nonce", this.nonce.getValue().intValue());
+        req.SetVariable("nonce", this.nonce);
         req.SetVariable("from", this.fromAddress);
-
         req.SetVariable("value", this.value.toString());
-
-        req.SetVariable("action", this.action.getValue().intValue());
-
+        req.SetVariable("action", this.action);
         req.SetVariable("enable_spo", this.additionalIssue);
         req.SetVariable("crypto_type", this.cryptoType);
         req.SetVariable("signature", this.sign());
         req.SetVariable("pubkey", Hex.toHexString(this.account.GetPublicKey()));
-
         req.SetVariable("token_id", this.tokenID);
 
         return req;
