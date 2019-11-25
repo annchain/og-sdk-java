@@ -1,5 +1,9 @@
 import com.alibaba.fastjson.JSON;
 import model.*;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Type;
 import server.OGRequestGET;
 import server.OGRequestPOST;
 import server.OGServer;
@@ -7,26 +11,37 @@ import types.*;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OG {
 
     private String node_url;
     private OGServer server;
+    private final Integer DEFAULT_TOKENID = 0;
 
     public OG(String url) {
         this.node_url = url;
         this.server = new OGServer(url);
     }
 
-    public TransferTokenResp TransferToken(Account account, String to, Integer tokenID, BigInteger value) throws IOException {
+    private SendTransactionResp SendRawTransaction(Account account, String to, Integer tokenID, BigInteger value, String data) throws IOException {
         QueryNonceResp nonceResp = this.QueryNonce(account.GetAddress());
         Long nonce = nonceResp.getNonce();
 
-        TX tx = new TX(account, to, nonce, value, "", tokenID);
+        TX tx = new TX(account, to, nonce, value, data, tokenID);
         OGRequestPOST req = tx.commit();
 
         String resp = this.server.Post("new_transaction", req);
-        return JSON.parseObject(resp, TransferTokenResp.class);
+        return JSON.parseObject(resp, SendTransactionResp.class);
+    }
+
+    public SendTransactionResp SendTransaction(Account account, String to, BigInteger value, String data) throws IOException {
+        return this.SendRawTransaction(account, to, this.DEFAULT_TOKENID, value, "");
+    }
+
+    public SendTransactionResp TransferToken(Account account, String to, Integer tokenID, BigInteger value) throws IOException {
+        return this.SendRawTransaction(account, to, tokenID, value, "");
     }
 
     public InitialTokenOfferingResp InitialTokenOffering(Account account, BigInteger value, Boolean additionalIssue, String tokenName) throws IOException {
@@ -61,6 +76,21 @@ public class OG {
         String resp = this.server.Post(tx.rpcMethod, req);
         return JSON.parseObject(resp, DestroyTokenResp.class);
     }
+
+    public SendTransactionResp DeployContract(Account account, BigInteger value, String bytecode, List<Type> constructorParameters) throws IOException {
+        String data = bytecode + FunctionEncoder.encodeConstructor(constructorParameters);
+
+
+        return this.SendRawTransaction(account, "", this.DEFAULT_TOKENID, value, data);
+    }
+
+//    public CallContract() {
+//
+//    }
+//
+//    public QueryContract() {
+//
+//    }
 
     public QueryTokenResp QueryToken(Integer tokenID) throws IOException {
         OGRequestGET req = new OGRequestGET();
@@ -109,12 +139,22 @@ public class OG {
     }
 
     public static void main(String args[]) throws IOException {
-        String url = "http://localhost:8000";
-        OG og = new OG(url);
+
+        Address addr = new Address("cb88e47e1426149c4354474339b2e2ee13143ca3");
+
+
+        List<Type> parameters = new ArrayList<>();
+        parameters.add(addr);
+
+        String s = FunctionEncoder.encodeConstructor(parameters);
+        System.out.println("encoded: " + s);
+
+//        String url = "http://localhost:8000";
+//        OG og = new OG(url);
 
         // publish a token.
-        Account account = new Account("0000000000000000000000000000000000000000000000000000000000000001");
-        System.out.println(account.GetAddress());
+//        Account account = new Account("0000000000000000000000000000000000000000000000000000000000000001");
+//        System.out.println(account.GetAddress());
 
 //        String hash = og.InitialTokenOffering(account, new BigInteger("10000"), true, "uni");
 //
@@ -134,8 +174,8 @@ public class OG {
 //        JSONObject receiptJson = JSONObject.parseObject(receiptJsonStr);
 
         // test query balance
-        QueryBalanceResp balance = og.QueryBalance("c6b6e9949e1e4a4c4df8b80a9a07c95008b563ea", 0);
-        System.out.println("balance is: " + balance.getData().getBalance());
+//        QueryBalanceResp balance = og.QueryBalance("c6b6e9949e1e4a4c4df8b80a9a07c95008b563ea", 0);
+//        System.out.println("balance is: " + balance.getData().getBalance());
 //
 //        balance = og.QueryBalance("0xcb88e47e1426149c4354474339b2e2ee13143ca3", 0);
 //        System.out.println("balance is: " + balance.toString());
