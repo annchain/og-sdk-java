@@ -3,7 +3,7 @@ package model;
 import lombok.Data;
 
 @Data
-public class DestroyTokenResp {
+public class CallContractResp {
     String data;
     String err;
 }
