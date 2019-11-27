@@ -4,7 +4,6 @@ import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.*;
-import org.web3j.abi.datatypes.generated.Bytes1;
 import server.OGRequestGET;
 import server.OGRequestPOST;
 import server.OGServer;
@@ -15,7 +14,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-interface ConfirmCallback {
+interface IConfirmCallback {
     /**
      * Return the frequency time to check if a tx is confirmed.
      * Time unit: Millisecond.
@@ -27,11 +26,10 @@ interface ConfirmCallback {
      * */
     Integer Timeout();
 
-    void ConfirmEvent(String result);
-    void FailedEvent(String err);
+    void ConfirmEvent(ConfirmCallbackResp result);
 }
 
-interface ContractCallback {
+interface IContractCallback {
     /**
      * Return the frequency time to check if a tx is confirmed.
      * Time unit: Millisecond.
@@ -43,8 +41,7 @@ interface ContractCallback {
      * */
     Integer Timeout();
 
-    void ContractEvent(List<Type> result);
-    void FailedEvent(String err);
+    void ContractEvent(ContractCallbackResp result);
 }
 
 public class OG {
@@ -65,7 +62,7 @@ public class OG {
 
     private SendTransactionResp SendRawTransaction(Account account, String to, Integer tokenID, BigInteger value, String data) throws IOException {
         QueryNonceResp nonceResp = this.QueryNonce(account.GetAddress());
-        Long nonce = nonceResp.getNonce();
+        Long nonce = nonceResp.getNonce() + 1;
 
         TX tx = new TX(account, to, nonce, value, data, tokenID);
         OGRequestPOST req = tx.commit();
@@ -78,7 +75,7 @@ public class OG {
         return this.SendRawTransaction(account, to, this.DEFAULT_TOKENID, value, "");
     }
 
-    public SendTransactionResp SendTransactionAsync(Account account, String to, BigInteger value, ConfirmCallback callback) throws IOException, InterruptedException {
+    public SendTransactionResp SendTransactionAsync(Account account, String to, BigInteger value, IConfirmCallback callback) throws IOException, InterruptedException {
         SendTransactionResp resp = this.SendTransaction(account, to, value);
         checkTransactionConfirmed(resp, callback);
         return resp;
@@ -88,7 +85,7 @@ public class OG {
         return this.SendRawTransaction(account, to, tokenID, value, "");
     }
 
-    public SendTransactionResp TransferTokenAsync(Account account, String to, Integer tokenID, BigInteger value, ConfirmCallback callback) throws IOException, InterruptedException {
+    public SendTransactionResp TransferTokenAsync(Account account, String to, Integer tokenID, BigInteger value, IConfirmCallback callback) throws IOException, InterruptedException {
         SendTransactionResp resp = this.TransferToken(account, to, tokenID, value);
         checkTransactionConfirmed(resp, callback);
         return resp;
@@ -96,7 +93,7 @@ public class OG {
 
     public SendTransactionResp InitialTokenOffering(Account account, BigInteger value, Boolean additionalIssue, String tokenName) throws IOException {
         QueryNonceResp nonceResp = this.QueryNonce(account.GetAddress());
-        Long nonce = nonceResp.getNonce();
+        Long nonce = nonceResp.getNonce() + 1;
 
         TX_InitialTokenOffering tx = new TX_InitialTokenOffering(account, nonce, value, additionalIssue, tokenName);
         OGRequestPOST req = tx.commit();
@@ -105,7 +102,7 @@ public class OG {
         return JSON.parseObject(resp, SendTransactionResp.class);
     }
 
-    public SendTransactionResp InitialTokenOfferingAsync(Account account, BigInteger value, Boolean additionalIssue, String tokenName, ConfirmCallback callback) throws IOException, InterruptedException {
+    public SendTransactionResp InitialTokenOfferingAsync(Account account, BigInteger value, Boolean additionalIssue, String tokenName, IConfirmCallback callback) throws IOException, InterruptedException {
         SendTransactionResp resp = this.InitialTokenOffering(account, value, additionalIssue, tokenName);
         checkTransactionConfirmed(resp, callback);
         return resp;
@@ -113,7 +110,7 @@ public class OG {
 
     public SendTransactionResp OfferMoreToken(Account account, BigInteger value, Integer tokenID) throws IOException {
         QueryNonceResp nonceResp = this.QueryNonce(account.GetAddress());
-        Long nonce = nonceResp.getNonce();
+        Long nonce = nonceResp.getNonce() + 1;
 
         TX_AdditionalTokenOffering tx = new TX_AdditionalTokenOffering(account, nonce, value, tokenID);
         OGRequestPOST req = tx.commit();
@@ -122,7 +119,7 @@ public class OG {
         return JSON.parseObject(resp, SendTransactionResp.class);
     }
 
-    public SendTransactionResp OfferMoreTokenAsync(Account account, BigInteger value, Integer tokenID, ConfirmCallback callback) throws IOException, InterruptedException {
+    public SendTransactionResp OfferMoreTokenAsync(Account account, BigInteger value, Integer tokenID, IConfirmCallback callback) throws IOException, InterruptedException {
         SendTransactionResp resp = this.OfferMoreToken(account, value, tokenID);
         checkTransactionConfirmed(resp, callback);
         return resp;
@@ -130,7 +127,7 @@ public class OG {
 
     public SendTransactionResp DestroyToken(Account account, Integer tokenID) throws IOException {
         QueryNonceResp nonceResp = this.QueryNonce(account.GetAddress());
-        Long nonce = nonceResp.getNonce();
+        Long nonce = nonceResp.getNonce() + 1;
 
         TX_DestroyToken tx = new TX_DestroyToken(account, nonce, tokenID);
         OGRequestPOST req = tx.commit();
@@ -139,7 +136,7 @@ public class OG {
         return JSON.parseObject(resp, SendTransactionResp.class);
     }
 
-    public SendTransactionResp DestroyTokenAsync(Account account, Integer tokenID, ConfirmCallback callback) throws IOException, InterruptedException {
+    public SendTransactionResp DestroyTokenAsync(Account account, Integer tokenID, IConfirmCallback callback) throws IOException, InterruptedException {
         SendTransactionResp resp = this.DestroyToken(account, tokenID);
         checkTransactionConfirmed(resp, callback);
         return resp;
@@ -150,7 +147,7 @@ public class OG {
         return this.SendRawTransaction(account, "", this.DEFAULT_TOKENID, value, data);
     }
 
-    public SendTransactionResp DeployContractAsync(Account account, BigInteger value, String bytecode, List<Type> constructorParameters, ConfirmCallback callback) throws IOException, InterruptedException {
+    public SendTransactionResp DeployContractAsync(Account account, BigInteger value, String bytecode, List<Type> constructorParameters, IConfirmCallback callback) throws IOException, InterruptedException {
         SendTransactionResp resp = this.DeployContract(account, value, bytecode, constructorParameters);
         checkTransactionConfirmed(resp, callback);
         return resp;
@@ -166,7 +163,7 @@ public class OG {
         return this.SendRawTransaction(account, contractAddress, this.DEFAULT_TOKENID, value, data);
     }
 
-    public SendTransactionResp CallContractAsync(Account account, String contractAddress, BigInteger value, String funcName, List<Type> inputs, List<Class<Type>> outputTypes, ContractCallback callback) throws IOException, InterruptedException {
+    public SendTransactionResp CallContractAsync(Account account, String contractAddress, BigInteger value, String funcName, List<Type> inputs, List<Class<Type>> outputTypes, IContractCallback callback) throws IOException, InterruptedException {
         List<TypeReference<?>> outputFuncParams = new ArrayList<>();
         List<TypeReference<Type>> outputParams = new ArrayList<>();
         for ( Class<Type> cls: outputTypes) {
@@ -213,6 +210,12 @@ public class OG {
         return JSON.parseObject(resp, QueryTokenResp.class);
     }
 
+    /**
+     * Query receipt of a transaction.
+     * @param hash 32 length byte array formatted in hex.
+     * @return
+     * @throws IOException
+     */
     public QueryReceiptResp QueryReceipt(String hash) throws IOException {
         OGRequestGET req = new OGRequestGET();
         req.SetVariable("hash", hash);
@@ -221,6 +224,13 @@ public class OG {
         return JSON.parseObject(resp, QueryReceiptResp.class);
     }
 
+    /**
+     * Query balance of an address.
+     * @param address   20 length byte array formatted in hex.
+     * @param tokenID   the id of the token.
+     * @return
+     * @throws IOException
+     */
     public QueryBalanceResp QueryBalance(String address, Integer tokenID) throws IOException {
         OGRequestGET req = new OGRequestGET();
         req.SetVariable("address", address);
@@ -230,6 +240,12 @@ public class OG {
         return JSON.parseObject(resp, QueryBalanceResp.class);
     }
 
+    /**
+     * Query nonce of an address.
+     * @param address   20 length byte array formatted in hex.
+     * @return
+     * @throws IOException
+     */
     public QueryNonceResp QueryNonce(String address) throws IOException {
         OGRequestGET req = new OGRequestGET();
         req.SetVariable("address", address);
@@ -237,6 +253,12 @@ public class OG {
         return JSON.parseObject(resp, QueryNonceResp.class);
     }
 
+    /**
+     * Query transaction by transaction hash.
+     * @param hash  32 length byte array formatted in hex.
+     * @return
+     * @throws IOException
+     */
     public QueryTransactionResp QueryTransaction(String hash) throws IOException {
         OGRequestGET req = new OGRequestGET();
         req.SetVariable("hash", hash);
@@ -244,6 +266,12 @@ public class OG {
         return JSON.parseObject(resp, QueryTransactionResp.class);
     }
 
+    /**
+     * Query all transactions that confirmed a same sequencer.
+     * @param height    sequencer height.
+     * @return
+     * @throws IOException
+     */
     public QueryTransactionListResp QueryTransactionsByHeight(Long height) throws IOException {
         OGRequestGET req = new OGRequestGET();
         req.SetVariable("height", height.toString());
@@ -251,41 +279,54 @@ public class OG {
         return JSON.parseObject(resp, QueryTransactionListResp.class);
     }
 
-    private void checkTransactionConfirmed(SendTransactionResp txResp, ConfirmCallback callback) throws IOException, InterruptedException {
+    private void checkTransactionConfirmed(SendTransactionResp txResp, IConfirmCallback callback) throws IOException, InterruptedException {
+        ConfirmCallbackResp resp = new ConfirmCallbackResp();
+        resp.setHash(txResp.getHash());
+        resp.setErr("");
         if (!txResp.getErr().equals("")) {
-            callback.FailedEvent("tx error: "+ txResp.getErr());
+            resp.setErr("tx error: "+ txResp.getErr());
+            callback.ConfirmEvent(resp);
             return;
         }
         QueryReceiptResp receipt = checkHelper(txResp, callback.IntervalTime(), callback.Timeout());
         if (receipt == null) {
-            callback.FailedEvent("confirm timeout");
+            resp.setErr("confirm timeout");
+            callback.ConfirmEvent(resp);
             return;
         }
         String result = receipt.getData().getResult();
         if (!receipt.getData().getStatus().equals(RECEIPT_STATUS_SUCCESS)) {
-            callback.FailedEvent(result);
+            resp.setErr(result);
+            callback.ConfirmEvent(resp);
             return;
         }
-        callback.ConfirmEvent(result);
+        resp.setData(result);
+        callback.ConfirmEvent(resp);
     }
 
-    private void checkContractCall(SendTransactionResp txResp, List<TypeReference<Type>> outputParams, ContractCallback callback) throws IOException, InterruptedException  {
+    private void checkContractCall(SendTransactionResp txResp, List<TypeReference<Type>> outputParams, IContractCallback callback) throws IOException, InterruptedException  {
+        ContractCallbackResp resp = new ContractCallbackResp();
+        resp.setHash(txResp.getHash());
         if (!txResp.getErr().equals("")) {
-            callback.FailedEvent("tx error: "+ txResp.getErr());
+            resp.setErr("tx error: "+ txResp.getErr());
+            callback.ContractEvent(resp);
             return;
         }
         QueryReceiptResp receipt = checkHelper(txResp, callback.IntervalTime(), callback.Timeout());
         if (receipt == null) {
-            callback.FailedEvent("confirm timeout");
+            resp.setErr("confirm timeout");
+            callback.ContractEvent(resp);
             return;
         }
         String result = receipt.getData().getResult();
         if (!receipt.getData().getStatus().equals(RECEIPT_STATUS_SUCCESS)) {
-            callback.FailedEvent(result);
+            resp.setErr(result);
+            callback.ContractEvent(resp);
             return;
         }
-        List<Type> contractResults = FunctionReturnDecoder.decode(result, outputParams);
-        callback.ContractEvent(contractResults);
+        List<Type> contractOutputs = FunctionReturnDecoder.decode(result, outputParams);
+        resp.setData(contractOutputs);
+        callback.ContractEvent(resp);
     }
 
     private QueryReceiptResp checkHelper(SendTransactionResp txResp, Integer callbackInterval, Integer callbackTimeout) throws IOException, InterruptedException {
@@ -303,31 +344,29 @@ public class OG {
     }
 
     public static void main(String args[]) throws IOException {
-
-        Address addr = new Address("cb88e47e1426149c4354474339b2e2ee13143ca3");
-        byte[] b1 = { 0x32 };
-        BytesType b = new Bytes1(b1);
-
-        List<Type> parameters = new ArrayList<>();
-        parameters.add(addr);
-        parameters.add(b);
-
-        String s = FunctionEncoder.encodeConstructor(parameters);
-        System.out.println("encoded: " + s);
-
-        List<TypeReference<?>> outputs = new ArrayList<>();
-        outputs.add(TypeReference.create(Address.class));
-
-        Function func = new Function("abcd", parameters, outputs);
-
-//        FunctionReturnDecoder.
+//
+//        Address addr = new Address("cb88e47e1426149c4354474339b2e2ee13143ca3");
+//        byte[] b1 = { 0x32 };
+//        BytesType b = new Bytes1(b1);
+//
+//        List<Type> parameters = new ArrayList<>();
+//        parameters.add(addr);
+//        parameters.add(b);
+//
+//        String s = FunctionEncoder.encodeConstructor(parameters);
+//        System.out.println("encoded: " + s);
+//
+//        List<TypeReference<?>> outputs = new ArrayList<>();
+//        outputs.add(TypeReference.create(Address.class));
+//
+//        Function func = new Function("abcd", parameters, outputs);
 
 //        String url = "http://localhost:8000";
 //        OG og = new OG(url);
 
         // publish a token.
-//        Account account = new Account("0000000000000000000000000000000000000000000000000000000000000001");
-//        System.out.println(account.GetAddress());
+        Account account = new Account("0000000000000000000000000000000000000000000000000000000000000001");
+        System.out.println(account.GetAddress());
 
 //        String hash = og.InitialTokenOffering(account, new BigInteger("10000"), true, "uni");
 //
@@ -346,12 +385,13 @@ public class OG {
 //
 //        JSONObject receiptJson = JSONObject.parseObject(receiptJsonStr);
 
-        // test query balance
-//        QueryBalanceResp balance = og.QueryBalance("c6b6e9949e1e4a4c4df8b80a9a07c95008b563ea", 0);
+//        // test query balance
+//        QueryBalanceResp balance = og.QueryBalance(account.GetAddress(), 0);
 //        System.out.println("balance is: " + balance.getData().getBalance());
 //
-//        balance = og.QueryBalance("0xcb88e47e1426149c4354474339b2e2ee13143ca3", 0);
-//        System.out.println("balance is: " + balance.toString());
+//        // query nonce
+//        QueryNonceResp nonce = og.QueryNonce(account.GetAddress());
+//        System.out.println(nonce.getNonce());
 
         // test query token
 //        String tokenInfo = og.QueryToken(1);
