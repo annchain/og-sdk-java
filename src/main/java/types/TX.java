@@ -13,7 +13,6 @@ import java.nio.ByteBuffer;
 
 public class TX {
     private Account account;
-
     private Long nonce;
     private String fromAddress;
     private String toAddress;

@@ -4,6 +4,7 @@ import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.*;
+import org.web3j.abi.datatypes.generated.Bytes1;
 import server.OGRequestGET;
 import server.OGRequestPOST;
 import server.OGServer;
@@ -48,12 +49,15 @@ public class OG {
 
     private String node_url;
     private OGServer server;
-    private final Integer DEFAULT_TOKENID = 0;
+    public final Integer DEFAULT_TOKENID = 0;
+    public final String EMPTY_ADDRESS = "0000000000000000000000000000000000000000";
+    public final String EMPTY_DATA = "";
+    public final String EMPTY_ERROR = "";
 
-    private final Integer RECEIPT_STATUS_SUCCESS = 0;
-    private final Integer RECEIPT_STATUS_OVMFAILED = 1;
-    private final Integer RECEIPT_STATUS_UNKNOWNTYPE = 2;
-    private final Integer RECEIPT_STATUS_FAILED = 3;
+    public final Integer RECEIPT_STATUS_SUCCESS = 0;
+    public final Integer RECEIPT_STATUS_OVMFAILED = 1;
+    public final Integer RECEIPT_STATUS_UNKNOWNTYPE = 2;
+    public final Integer RECEIPT_STATUS_FAILED = 3;
 
     public OG(String url) {
         this.node_url = url;
@@ -72,7 +76,7 @@ public class OG {
     }
 
     public SendTransactionResp SendTransaction(Account account, String to, BigInteger value) throws IOException {
-        return this.SendRawTransaction(account, to, this.DEFAULT_TOKENID, value, "");
+        return this.SendRawTransaction(account, to, this.DEFAULT_TOKENID, value, EMPTY_DATA);
     }
 
     public SendTransactionResp SendTransactionAsync(Account account, String to, BigInteger value, IConfirmCallback callback) throws IOException, InterruptedException {
@@ -82,7 +86,7 @@ public class OG {
     }
 
     public SendTransactionResp TransferToken(Account account, String to, Integer tokenID, BigInteger value) throws IOException {
-        return this.SendRawTransaction(account, to, tokenID, value, "");
+        return this.SendRawTransaction(account, to, tokenID, value, EMPTY_DATA);
     }
 
     public SendTransactionResp TransferTokenAsync(Account account, String to, Integer tokenID, BigInteger value, IConfirmCallback callback) throws IOException, InterruptedException {
@@ -144,7 +148,7 @@ public class OG {
 
     public SendTransactionResp DeployContract(Account account, BigInteger value, String bytecode, List<Type> constructorParameters) throws IOException {
         String data = bytecode + FunctionEncoder.encodeConstructor(constructorParameters);
-        return this.SendRawTransaction(account, "", this.DEFAULT_TOKENID, value, data);
+        return this.SendRawTransaction(account, EMPTY_ADDRESS, this.DEFAULT_TOKENID, value, data);
     }
 
     public SendTransactionResp DeployContractAsync(Account account, BigInteger value, String bytecode, List<Type> constructorParameters, IConfirmCallback callback) throws IOException, InterruptedException {
@@ -153,38 +157,21 @@ public class OG {
         return resp;
     }
 
-    public SendTransactionResp CallContract(Account account, String contractAddress, BigInteger value, String funcName, List<Type> inputs, List<Class<Type>> outputTypes) throws IOException {
-        List<TypeReference<?>> outputParams = new ArrayList<>();
-        for ( Class<Type> cls: outputTypes) {
-            outputParams.add(TypeReference.create(cls));
-        }
-        Function func = new Function(funcName, inputs, outputParams);
+    public SendTransactionResp CallContract(Account account, String contractAddress, BigInteger value, String funcName, List<Type> inputs) throws IOException {
+        Function func = new Function(funcName, inputs, new ArrayList<>());
         String data = FunctionEncoder.encode(func);
         return this.SendRawTransaction(account, contractAddress, this.DEFAULT_TOKENID, value, data);
     }
 
-    public SendTransactionResp CallContractAsync(Account account, String contractAddress, BigInteger value, String funcName, List<Type> inputs, List<Class<Type>> outputTypes, IContractCallback callback) throws IOException, InterruptedException {
-        List<TypeReference<?>> outputFuncParams = new ArrayList<>();
-        List<TypeReference<Type>> outputParams = new ArrayList<>();
-        for ( Class<Type> cls: outputTypes) {
-            outputFuncParams.add(TypeReference.create(cls));
-            outputParams.add(TypeReference.create(cls));
-        }
-        Function func = new Function(funcName, inputs, outputFuncParams);
-        String data = FunctionEncoder.encode(func);
-
-        SendTransactionResp resp = this.SendRawTransaction(account, contractAddress, this.DEFAULT_TOKENID, value, data);
-        checkContractCall(resp, outputParams, callback);
+    public SendTransactionResp CallContractAsync(Account account, String contractAddress, BigInteger value, String funcName, List<Type> inputs, List<TypeReference<?>> outputParams, IContractCallback callback) throws IOException, InterruptedException {
+        Function func = new Function(funcName, inputs, outputParams);
+        SendTransactionResp resp = this.CallContract(account, contractAddress, value, funcName, inputs);
+        checkContractCall(resp, func.getOutputParameters(), callback);
         return resp;
     }
 
-    public QueryContractResp QueryContract(String contractAddress, String funcName, List<Type> inputs, List<Class<Type>> outputTypes) throws IOException {
-        List<TypeReference<?>> outputFuncParams = new ArrayList<>();
-        List<TypeReference<Type>> outputParams = new ArrayList<>();
-        for ( Class<Type> cls: outputTypes) {
-            outputFuncParams.add(TypeReference.create(cls));
-        }
-        Function func = new Function(funcName, inputs, outputFuncParams);
+    public QueryContractResp QueryContract(String contractAddress, String funcName, List<Type> inputs, List<TypeReference<?>> outputParams) throws IOException {
+        Function func = new Function(funcName, inputs, outputParams);
         String data = FunctionEncoder.encode(func);
 
         OGRequestPOST req = new OGRequestPOST();
@@ -196,8 +183,8 @@ public class OG {
 
         QueryContractResp queryContractResp = new QueryContractResp();
         queryContractResp.setErr(contractResp.getErr());
-        if (contractResp.getErr().equals("")) {
-            queryContractResp.setOutputs(FunctionReturnDecoder.decode(contractResp.getData(), outputParams));
+        if (contractResp.getErr().equals(EMPTY_ERROR)) {
+            queryContractResp.setOutputs(FunctionReturnDecoder.decode(contractResp.getData(), func.getOutputParameters()));
         }
         return queryContractResp;
     }
@@ -282,8 +269,9 @@ public class OG {
     private void checkTransactionConfirmed(SendTransactionResp txResp, IConfirmCallback callback) throws IOException, InterruptedException {
         ConfirmCallbackResp resp = new ConfirmCallbackResp();
         resp.setHash(txResp.getHash());
-        resp.setErr("");
-        if (!txResp.getErr().equals("")) {
+        resp.setErr(EMPTY_ERROR);
+
+        if (!txResp.getErr().equals(EMPTY_ERROR)) {
             resp.setErr("tx error: "+ txResp.getErr());
             callback.ConfirmEvent(resp);
             return;
@@ -307,7 +295,7 @@ public class OG {
     private void checkContractCall(SendTransactionResp txResp, List<TypeReference<Type>> outputParams, IContractCallback callback) throws IOException, InterruptedException  {
         ContractCallbackResp resp = new ContractCallbackResp();
         resp.setHash(txResp.getHash());
-        if (!txResp.getErr().equals("")) {
+        if (!txResp.getErr().equals(EMPTY_ERROR)) {
             resp.setErr("tx error: "+ txResp.getErr());
             callback.ContractEvent(resp);
             return;
@@ -348,18 +336,19 @@ public class OG {
 //        Address addr = new Address("cb88e47e1426149c4354474339b2e2ee13143ca3");
 //        byte[] b1 = { 0x32 };
 //        BytesType b = new Bytes1(b1);
-//
+////
 //        List<Type> parameters = new ArrayList<>();
 //        parameters.add(addr);
 //        parameters.add(b);
 //
 //        String s = FunctionEncoder.encodeConstructor(parameters);
 //        System.out.println("encoded: " + s);
-//
+////
 //        List<TypeReference<?>> outputs = new ArrayList<>();
 //        outputs.add(TypeReference.create(Address.class));
 //
 //        Function func = new Function("abcd", parameters, outputs);
+
 
 //        String url = "http://localhost:8000";
 //        OG og = new OG(url);
