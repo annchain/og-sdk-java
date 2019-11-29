@@ -72,7 +72,7 @@ public class TX {
         msgBuffer.put(dataBytes);
         msgBuffer.put(tokenIDBytes);
 
-        System.out.println("sig targets: " + Hex.toHexString(msg));
+//        System.out.println("sig targets: " + Hex.toHexString(msg));
         return msgBuffer.array();
     }
 
