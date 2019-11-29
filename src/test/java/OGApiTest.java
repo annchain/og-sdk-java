@@ -160,7 +160,27 @@ public class OGApiTest {
         Type indexResult = queryContractResp.getOutputs().get(0);
         Uint64 index = (Uint64) indexResult;
         assertEquals(constructIndex, index.getValue().longValue());
-        System.out.println("index confirmed");
+        System.out.println("index confirmed, index: " + index.getValue().toString());
+
+        // check index change
+        long newIndex = 100L;
+        String funcName = "setIndex";
+        List<Type> inputs = new ArrayList<>();
+        inputs.add(new Uint64(newIndex));
+        List<TypeReference<?>> outputParams = new ArrayList<>();
+
+        SendTransactionResp callContractResp = og.CallContract(account, contractAddress, value, funcName, inputs, outputParams);
+        assertEquals(og.EMPTY_ERROR, callContractResp.getErr());
+        hash = callContractResp.getHash();
+        receiptResp = queryReceiptUntilTimeout(hash, timeout, interval);
+        assertNotNull(receiptResp);
+
+        queryContractResp = og.QueryContract(contractAddress, "index", new ArrayList<>(), outputRef);
+        assertEquals(og.EMPTY_ERROR, queryContractResp.getErr());
+        indexResult = queryContractResp.getOutputs().get(0);
+        index = (Uint64) indexResult;
+        assertEquals(newIndex, index.getValue().longValue());
+        System.out.println("setIndex confirmed, index: " + index.getValue().toString());
 
     }
 

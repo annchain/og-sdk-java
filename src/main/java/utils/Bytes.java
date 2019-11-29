@@ -41,6 +41,13 @@ public class Bytes {
         return buffer.getShort();
     }
 
+    public static byte[] DecodeFromHex(String s) {
+        if (s.startsWith("0x")) {
+            s = s.substring(2);
+        }
+        return Hex.decode(s);
+    }
+
     public static void main(String arg[]) {
         Integer i = 10000;
 

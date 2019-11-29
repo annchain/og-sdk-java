@@ -3,7 +3,7 @@ package model;
 import lombok.Data;
 
 @Data
-public class CallContractResp {
+public class QueryContractRawResp {
     String data;
     String err;
 }

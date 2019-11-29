@@ -56,10 +56,10 @@ public class TX {
 
     public byte[] signatureTargets() {
         byte[] nonceBytes = Bytes.LongToBytes(this.nonce);
-        byte[] fromBytes = Hex.decode(this.fromAddress);
-        byte[] toBytes = Hex.decode(this.toAddress);
+        byte[] fromBytes = Bytes.DecodeFromHex(this.fromAddress);
+        byte[] toBytes = Bytes.DecodeFromHex(this.toAddress);
         byte[] valueBytes = this.value.toByteArray();
-        byte[] dataBytes = Hex.decode(this.data);
+        byte[] dataBytes = Bytes.DecodeFromHex(this.data);
         byte[] tokenIDBytes = Bytes.IntToBytes(this.tokenID);
 
         int msgLength = nonceBytes.length + fromBytes.length + toBytes.length + valueBytes.length + dataBytes.length + tokenIDBytes.length;

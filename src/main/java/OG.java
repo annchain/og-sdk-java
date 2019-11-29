@@ -4,7 +4,6 @@ import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.*;
-import org.web3j.abi.datatypes.generated.Bytes1;
 import server.OGRequestGET;
 import server.OGRequestPOST;
 import server.OGServer;
@@ -12,7 +11,6 @@ import types.*;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 
 interface IConfirmCallback {
@@ -157,15 +155,15 @@ public class OG {
         return resp;
     }
 
-    public SendTransactionResp CallContract(Account account, String contractAddress, BigInteger value, String funcName, List<Type> inputs) throws IOException {
-        Function func = new Function(funcName, inputs, new ArrayList<>());
+    public SendTransactionResp CallContract(Account account, String contractAddress, BigInteger value, String funcName, List<Type> inputs, List<TypeReference<?>> outputParams) throws IOException {
+        Function func = new Function(funcName, inputs, outputParams);
         String data = FunctionEncoder.encode(func);
         return this.SendRawTransaction(account, contractAddress, this.DEFAULT_TOKENID, value, data);
     }
 
     public SendTransactionResp CallContractAsync(Account account, String contractAddress, BigInteger value, String funcName, List<Type> inputs, List<TypeReference<?>> outputParams, IContractCallback callback) throws IOException, InterruptedException {
         Function func = new Function(funcName, inputs, outputParams);
-        SendTransactionResp resp = this.CallContract(account, contractAddress, value, funcName, inputs);
+        SendTransactionResp resp = this.CallContract(account, contractAddress, value, funcName, inputs, outputParams);
         checkContractCall(resp, func.getOutputParameters(), callback);
         return resp;
     }
@@ -179,7 +177,7 @@ public class OG {
         req.SetVariable("data", data);
 
         String resp = this.server.Post("query_contract", req);
-        CallContractResp contractResp = JSON.parseObject(resp, CallContractResp.class);
+        QueryContractRawResp contractResp = JSON.parseObject(resp, QueryContractRawResp.class);
 
         QueryContractResp queryContractResp = new QueryContractResp();
         queryContractResp.setErr(contractResp.getErr());

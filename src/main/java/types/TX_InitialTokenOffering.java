@@ -29,7 +29,7 @@ public class TX_InitialTokenOffering extends TX_Action {
 
         byte[] nonceBytes = Bytes.LongToBytes(this.nonce);
         byte[] actionBytes = Bytes.ShortToBytes(this.action);
-        byte[] fromBytes = Hex.decode(this.fromAddress);
+        byte[] fromBytes = Bytes.DecodeFromHex(this.fromAddress);
         byte[] valueBytes = this.value.toByteArray();
         byte[] additionIssueBytes = Bytes.ShortToBytes(this.additionalIssuaToShort(this.additionalIssue));
         byte[] tokenNameBytes = this.tokenName.getBytes();

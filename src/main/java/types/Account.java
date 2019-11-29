@@ -6,6 +6,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.web3j.crypto.*;
 import server.OGRequestPOST;
 import server.OGServer;
+import utils.Bytes;
 import utils.Secp256k1_KeyGenerator;
 import utils.Secp256k1_Signer;
 
@@ -31,7 +32,7 @@ public class Account {
     }
 
     public Account(String privString) {
-        byte[] privBytes = Hex.decode(privString);
+        byte[] privBytes = Bytes.DecodeFromHex(privString);
 
         ECKeyPair keyPair = ECKeyPair.create(privBytes);
         this.privateKey = keyPair.getPrivateKey();
@@ -108,9 +109,9 @@ public class Account {
         String privHex = json.getJSONObject("data").getString("privkey");
         String pubHex = json.getJSONObject("data").getString("pubkey");
 
-        byte[] privBytes = Hex.decode(privHex);
+        byte[] privBytes = Bytes.DecodeFromHex(privHex);
         BigInteger priv = new BigInteger(privBytes);
-        byte[] pubBytes = Hex.decode(pubHex);
+        byte[] pubBytes = Bytes.DecodeFromHex(pubHex);
         BigInteger pub = new BigInteger(pubBytes);
 
         return new ECKeyPair(priv, pub);
