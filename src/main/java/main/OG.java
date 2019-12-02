@@ -421,9 +421,6 @@ public class OG {
         Bytes32 outputHash = (Bytes32) (outputs.get(0));
         System.out.println("call contract hash: " + Hex.toHexString(outputHash.getValue()));
 
-
-
-
         // get my wallet
         String myWalletFuncName = "getWallet";
 
