@@ -1,3 +1,5 @@
+package main;
+
 import com.alibaba.fastjson.JSON;
 import model.*;
 import org.bouncycastle.util.encoders.Hex;
@@ -16,35 +18,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-interface IConfirmCallback {
-    /**
-     * Return the frequency time to check if a tx is confirmed.
-     * Time unit: Millisecond.
-     * */
-    Integer IntervalTime();
 
-    /**
-     * Return the longest confirm time to wait
-     * */
-    Integer Timeout();
 
-    void ConfirmEvent(ConfirmCallbackResp result);
-}
 
-interface IContractCallback {
-    /**
-     * Return the frequency time to check if a tx is confirmed.
-     * Time unit: Millisecond.
-     * */
-    Integer IntervalTime();
-
-    /**
-     * Return the longest confirm time to wait
-     * */
-    Integer Timeout();
-
-    void ContractEvent(ContractCallbackResp result);
-}
 
 public class OG {
 

@@ -1,4 +1,5 @@
-import lombok.extern.slf4j.Slf4j;
+import main.IConfirmCallback;
+import main.OG;
 import model.ConfirmCallbackResp;
 import model.QueryBalanceResp;
 import model.QueryTransactionResp;

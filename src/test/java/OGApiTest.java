@@ -1,3 +1,4 @@
+import main.OG;
 import model.*;
 
 import org.junit.BeforeClass;
@@ -5,7 +6,6 @@ import org.junit.Test;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint64;
-import org.web3j.abi.datatypes.generated.Uint8;
 import types.Account;
 
 import java.io.IOException;
