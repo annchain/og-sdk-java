@@ -185,6 +185,8 @@ List<Bytes32> bts = dynamicArray.getValue();
 // do something with bts
 ```
 
+For more details, you can check the [examples](https://github.com/annchain/og-sdk-java/tree/master/src/main/java/io/annchain/og/examples).
+
 
 
 
