@@ -26,7 +26,7 @@ Account accountPriv = new Account("000000000000000000000000000000000000000000000
 System.out.println(accountPriv.GetAddress());
 ```
 
-### Initialize a OG server
+### Initialize a OG io.annchain.og.server
 ```java
 String OG_URL = "http://localhost:8000";
 OG og = new OG(OG_URL);
@@ -100,5 +100,92 @@ BigInteger value = new BigInteger("0");
 
 SendTransactionResp deployResp = og.DeployContract(account, value, contractBytecode, null);
 ```
+**Deploy contract with constructor parameter**
+```java
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.datatypes.*;
+
+String contractBytecode = "60806040523480156100105760008...";
+BigInteger value = new BigInteger("0");
+
+// add constructor parameters
+List<Type> constructorParameters = new ArrayList<>();
+constructorParameters.add(new Uint64(100L));
+constructorParameters.add(new Address("addressInHex"));
+contractBytecode += FunctionEncoder.encodeConstructor(constructorParameters);
+
+SendTransactionResp deployResp = og.DeployContract(account, value, contractBytecode, null);
+```
+
+### Call contract
+Call contract will create a new transaction which is contract related and send this transaction to the main chain.
+
+Assume you want to call a solidity function called `issueToken`:
+```
+function issueToken(address toUser, bytes memory data) public returns (bytes32 hash){
+    ...
+}
+```
+You can call this function like this:
+```java
+String contractAddress = "0xContractAddressInHex"
+String funcName = "issueToken";
+
+Address toUser = new Address("0xAddressInHex");
+
+byte[] b = {0x11, 0x22, 0x33};
+DynamicBytes data = new DynamicBytes(b);
+
+List<Type> inputs = new ArrayList<Type>();
+inputs.add(toUser);
+inputs.add(data);
+
+List<TypeReference<?>> outputParams = new ArrayList<>();
+outputParams.add(TypeReference.create(Bytes32.class));
+
+SendTransactionResp callContractResp = og.CallContract(issuer, contractAddress, value, funcName, inputs, outputParams);
+if (!callContractResp.getErr().equals("")) {
+    System.out.println("call contract err: " + callContractResp.getErr());
+}
+```
+
+### Query contract
+Query contract is used when you only want to query the data of the contract without any changes.
+
+Assume you want to call a static solidity function named `getWallet`:
+```
+function getWallet(address user) public view returns (bytes32[] memory hashes){
+    ...
+}
+```
+You can query this function by code:
+```java
+String contractAddress = "0xContractAddressInHex"
+String funcName = "getWallet";
+
+Address user = new Address("0xUserAddressInHex");
+
+List<Type> inputs = new ArrayList<Type>();
+inputs.add(user);
+
+List<TypeReference<?>> outputParams = new ArrayList<>();
+outputParams.add(new TypeReference<DynamicArray<Bytes32>>() {});
+
+QueryContractResp queryContractResp = og.QueryContract(contractAddress, funcName, inputs, outputParams);
+if (!queryContractResp.getErr().equals("")) {
+    System.out.println("contract error: " + queryContractResp.getErr());
+    return;
+}
+
+// initialize outputs
+List<Type> respOutputs = queryContractResp.getOutputs();
+DynamicArray<Bytes32> dynamicArray = (DynamicArray<Bytes32>) respOutputs.get(0);
+List<Bytes32> bts = dynamicArray.getValue();
+
+// do something with bts
+```
+
+
+
 
 
