@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.annchain</groupId>
-    <artifactId>og</artifactId>
+    <groupId>io.annchain.og</groupId>
+    <artifactId>sdk</artifactId>
     <version>1.0</version>
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>

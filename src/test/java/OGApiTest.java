@@ -1,12 +1,12 @@
-import io.annchain.og.main.OG;
-import io.annchain.og.model.*;
+import io.annchain.og.sdk.main.OG;
 
+import io.annchain.og.sdk.model.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint64;
-import io.annchain.og.types.Account;
+import io.annchain.og.sdk.types.Account;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
 //@Slf4j
 public class OGApiTest {
 
-    private static final String OG_URL = "http://localhost:8000";
+    private static final String OG_URL = "http://172.28.152.101:30066";
     private static OG og;
     private static Account account;
     private static Account account2;

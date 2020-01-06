@@ -1,11 +1,11 @@
 package io.annchain.og.examples.Ledger;
 
 import io.annchain.og.examples.Ledger.models.GetIncomingResp;
-import io.annchain.og.main.OG;
-import io.annchain.og.model.QueryContractResp;
-import io.annchain.og.model.QueryReceiptResp;
-import io.annchain.og.model.SendTransactionResp;
-import io.annchain.og.types.Account;
+import io.annchain.og.sdk.main.OG;
+import io.annchain.og.sdk.model.QueryContractResp;
+import io.annchain.og.sdk.model.QueryReceiptResp;
+import io.annchain.og.sdk.model.SendTransactionResp;
+import io.annchain.og.sdk.types.Account;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Uint;
