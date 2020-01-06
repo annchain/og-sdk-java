@@ -1,12 +1,12 @@
-import io.annchain.og.sdk.main.OG;
+import com.github.annchain.sdk.main.OG;
 
-import io.annchain.og.sdk.model.*;
+import com.github.annchain.sdk.model.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint64;
-import io.annchain.og.sdk.types.Account;
+import com.github.annchain.sdk.types.Account;
 
 import java.io.IOException;
 import java.math.BigInteger;

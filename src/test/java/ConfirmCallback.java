@@ -1,9 +1,9 @@
-import io.annchain.og.sdk.main.IConfirmCallback;
-import io.annchain.og.sdk.main.OG;
-import io.annchain.og.sdk.model.ConfirmCallbackResp;
-import io.annchain.og.sdk.model.QueryBalanceResp;
-import io.annchain.og.sdk.model.QueryTransactionResp;
-import io.annchain.og.sdk.model.QueryTransactionRespDataTx;
+import com.github.annchain.sdk.main.IConfirmCallback;
+import com.github.annchain.sdk.main.OG;
+import com.github.annchain.sdk.model.ConfirmCallbackResp;
+import com.github.annchain.sdk.model.QueryBalanceResp;
+import com.github.annchain.sdk.model.QueryTransactionResp;
+import com.github.annchain.sdk.model.QueryTransactionRespDataTx;
 
 import java.io.IOException;
 
