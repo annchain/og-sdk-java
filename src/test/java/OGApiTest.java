@@ -66,7 +66,7 @@ public class OGApiTest {
 
         new Thread(() -> {
             try {
-                og.SendTransactionAsync(account, account2.GetAddress(), value, confirmCallback);
+                og.SendTransactionAndJoin(account, account2.GetAddress(), value, confirmCallback);
                 QueryBalanceResp queryBalanceResp1 = og.QueryBalance(account.GetAddress(), og.DEFAULT_TOKENID);
                 BigInteger newBalance = new BigInteger(queryBalanceResp1.getData().getBalance());
 
