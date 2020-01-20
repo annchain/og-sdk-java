@@ -55,7 +55,7 @@ public class TX {
         byte[] nonceBytes = Bytes.LongToBytes(this.nonce);
         byte[] fromBytes = Bytes.DecodeFromHex(this.fromAddress);
         byte[] toBytes = Bytes.DecodeFromHex(this.toAddress);
-        byte[] valueBytes = this.value.toByteArray();
+        byte[] valueBytes = Bytes.fixedBitIntegerToByteArray(this.value);
         byte[] dataBytes = Bytes.DecodeFromHex(this.data);
         byte[] tokenIDBytes = Bytes.IntToBytes(this.tokenID);
 
@@ -92,6 +92,27 @@ public class TX {
         req.SetVariable("token_id", this.tokenID);
 
         return req;
+    }
+
+    public static void main(String args[]) {
+        String privHex = "476bd95a7b69e4ab20264f37a525255b0ede4e7af03b0014c70aebc4d450e34f";
+        Account account = new Account(privHex);
+
+        String toHex = "0xc1eb507017610d2134bc70146731d777a25c2889";
+        Long nonce = 17320L;
+        BigInteger value = new BigInteger("894385949183117216");
+        String dataHex = "";
+        Integer tokenID = 0;
+
+        TX tx = new TX(account, toHex, nonce, value, dataHex, tokenID);
+        System.out.println(tx.signature);
+
+//        byte[] sigB = Hex.decode(tx.signature);
+//        sigB[sigB.length-1] -= 27;
+//        System.out.println(Hex.toHexString(sigB));
+
+        System.out.println("sig targets: " + Hex.toHexString(tx.signatureTargets()));
+
     }
 
 }

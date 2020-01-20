@@ -2,7 +2,9 @@ package com.github.annchain.sdk.utils;
 
 import org.bouncycastle.util.encoders.Hex;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class Bytes {
     public static byte[] LongToBytes(Long i) {
@@ -46,6 +48,15 @@ public class Bytes {
             s = s.substring(2);
         }
         return Hex.decode(s);
+    }
+
+    public static byte[] fixedBitIntegerToByteArray(BigInteger i) {
+        byte[] original = i.toByteArray();
+        if (original[0] == 0 && !i.equals(BigInteger.ZERO)) {
+            // extra byte because of two's complement
+            return Arrays.copyOfRange(original, 1, original.length);
+        }
+        return original;
     }
 
     public static void main(String arg[]) {
