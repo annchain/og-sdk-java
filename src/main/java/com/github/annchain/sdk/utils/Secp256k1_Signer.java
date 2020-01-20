@@ -48,16 +48,12 @@ public class Secp256k1_Signer {
     }
 
     public byte[] SignAsBytes(byte[] msg) {
-        msg = Hash.sha256(msg);
-
-        Sign.SignatureData sig = Sign.signMessage(msg, this.keyPair, false);
+        Sign.SignatureData sig = this.Sign(msg);
         return this.SignatureToBytes(sig);
     }
 
     public String SignAsHex(byte[] msg) {
-        msg = Hash.sha256(msg);
-
-        Sign.SignatureData sig = Sign.signMessage(msg, this.keyPair, false);
+        Sign.SignatureData sig = this.Sign(msg);
         return this.SignatureToHex(sig);
     }
 
@@ -65,6 +61,7 @@ public class Secp256k1_Signer {
         byte[] r = sig.getR();
         byte[] s = sig.getS();
         byte v = sig.getV();
+        v -= 27; // to get a correct recover id.
 
         byte[] sigBytes = new byte[r.length + s.length + 1];
         ByteBuffer sigBuffer = ByteBuffer.wrap(sigBytes);
